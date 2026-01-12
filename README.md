@@ -30,17 +30,27 @@ A blazing-fast alternative to JavaScript/Bun-based Claude Code status line tools
 
 ### Quick Install (Recommended)
 
-Install the latest release with a single command:
+1. Install the latest release with a single command:
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/tuananh131001/zccinfo/main/install.sh | sh
 ```
 
-This will:
-- Detect your OS (macOS/Linux) and architecture (x86_64/ARM64)
-- Download the correct pre-built binary
-- Verify the checksum
-- Install to `~/.local/bin`
+
+2. Add to your Claude Code settings (`~/.claude/settings.json`):
+
+```json
+{
+  "status_line": {
+    "type": "command",
+    "command": "~/.local/bin/zig-context"
+  }
+}
+```
+
+Restart Claude Code and you'll see `Ctx: XX%` in the status line when switching between modes.
+
+### Note:
 
 To install to a custom location:
 
@@ -87,20 +97,6 @@ zig build run
 zig build test
 ```
 
-## Claude Code Configuration
-
-Add to your Claude Code settings (`~/.claude/settings.json`):
-
-```json
-{
-  "status_line": {
-    "type": "command",
-    "command": "~/.local/bin/zig-context"
-  }
-}
-```
-
-Restart Claude Code and you'll see `Ctx: XX%` in the status line.
 
 ## Benchmark Results
 
