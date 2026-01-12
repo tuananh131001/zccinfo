@@ -5,7 +5,7 @@ pub fn build(b: *std.Build) void {
     const optimize = b.standardOptimizeOption(.{});
 
     const exe = b.addExecutable(.{
-        .name = "zig-context",
+        .name = "zccinfo",
         .root_module = b.createModule(.{
             .root_source_file = b.path("src/main.zig"),
             .target = target,
@@ -50,7 +50,7 @@ pub fn build(b: *std.Build) void {
 
     for (release_targets) |release_target| {
         const release_exe = b.addExecutable(.{
-            .name = "zig-context",
+            .name = "zccinfo",
             .root_module = b.createModule(.{
                 .root_source_file = b.path("src/main.zig"),
                 .target = b.resolveTargetQuery(release_target),

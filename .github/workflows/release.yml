@@ -28,7 +28,7 @@ jobs:
           cd zig-out/release
           for dir in */; do
             platform="${dir%/}"
-            tar -czvf "zig-context-${platform}.tar.gz" -C "$platform" zig-context
+            tar -czvf "zccinfo-${platform}.tar.gz" -C "$platform" zccinfo
           done
 
       - name: Generate checksums
