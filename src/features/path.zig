@@ -40,5 +40,5 @@ pub fn basename(path: []const u8) []const u8 {
 }
 
 test {
-    _ = @import("path_test.zig");
+    _ = @import("../tests/path_test.zig");
 }

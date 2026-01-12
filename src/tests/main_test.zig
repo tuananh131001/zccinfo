@@ -1,5 +1,5 @@
 const std = @import("std");
-const main = @import("main.zig");
+const main = @import("../main.zig");
 
 test "getContextConfig returns 1M for sonnet 4.5 with [1m] suffix" {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};

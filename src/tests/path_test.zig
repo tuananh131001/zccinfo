@@ -1,5 +1,5 @@
 const std = @import("std");
-const path = @import("path.zig");
+const path = @import("../features/path.zig");
 const testing = std.testing;
 
 test "basename: normal path" {

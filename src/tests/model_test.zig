@@ -1,5 +1,5 @@
 const std = @import("std");
-const model = @import("model.zig");
+const model = @import("../features/model.zig");
 
 test "extractVersion - new format with minor version" {
     const version = model.extractVersion("claude-opus-4-5-20251101");

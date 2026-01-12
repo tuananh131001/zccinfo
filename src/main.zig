@@ -1,7 +1,7 @@
 const std = @import("std");
-const git = @import("git.zig");
-const path = @import("path.zig");
-const model_module = @import("model.zig");
+const git = @import("features/git.zig");
+const path = @import("features/path.zig");
+const model_module = @import("features/model.zig");
 
 // ANSI color codes
 const yellow = "\x1b[33m";
@@ -399,5 +399,5 @@ pub fn getContextConfig(allocator: std.mem.Allocator, model_id: ?[]const u8) Mod
 }
 
 test {
-    _ = @import("main_test.zig");
+    _ = @import("tests/main_test.zig");
 }

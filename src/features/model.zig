@@ -120,5 +120,5 @@ pub fn formatDisplayString(buf: []u8, model: Model) ?[]const u8 {
 }
 
 test {
-    _ = @import("model_test.zig");
+    _ = @import("../tests/model_test.zig");
 }
