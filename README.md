@@ -80,3 +80,18 @@ zig build run
 # Run unit tests
 zig build test
 ```
+
+## Claude Code Configuration
+
+Add to your Claude Code settings (`~/.claude/settings.json`):
+
+```json
+{
+  "status_line": {
+    "type": "command",
+    "command": "~/.local/bin/zig-context"
+  }
+}
+```
+
+Restart Claude Code and you'll see `Ctx: XX%` in the status line.
