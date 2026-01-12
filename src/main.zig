@@ -1,8 +1,14 @@
 const std = @import("std");
+const git = @import("git.zig");
 
 // ANSI color codes
-const blue = "\x1b[34m";
+const yellow = "\x1b[33m";
+const magenta = "\x1b[35m";
 const reset = "\x1b[0m";
+
+// Git display constants
+const git_icon = "\u{e0a0}"; // Powerline git branch icon
+const separator = " | ";
 
 // Maximum input size (1MB should be plenty for JSON input)
 const max_input_size = 1024 * 1024;
@@ -93,15 +99,42 @@ pub fn main() !void {
     // Clamp to 100%
     const clamped_percentage = @min(percentage, 100.0);
 
+    // Get git status (graceful if not in git repo)
+    var git_status = git.getCurrentBranch(allocator);
+    defer if (git_status) |*gs| gs.deinit();
+
     // Format output with color
-    var buf: [128]u8 = undefined;
-    const output = std.fmt.bufPrint(&buf, "{s}Ctx: {d:.1}%{s}\n", .{ blue, clamped_percentage, reset }) catch {
+    var buf: [256]u8 = undefined;
+    const output = if (git_status) |gs| blk: {
+        if (gs.branch) |branch| {
+            break :blk std.fmt.bufPrint(&buf, "{s}Ctx: {d:.1}%{s}{s}{s}{s} {s}{s}\n", .{
+                yellow,
+                clamped_percentage,
+                reset,
+                separator,
+                magenta,
+                git_icon,
+                branch,
+                reset,
+            }) catch {
+                std.debug.print("Error formatting output\n", .{});
+                std.process.exit(1);
+            };
+        }
+        break :blk null;
+    } else null;
+
+    const final_output = output orelse std.fmt.bufPrint(&buf, "{s}Ctx: {d:.1}%{s}\n", .{
+        yellow,
+        clamped_percentage,
+        reset,
+    }) catch {
         std.debug.print("Error formatting output\n", .{});
         std.process.exit(1);
     };
 
     // Write to stdout
-    std.fs.File.stdout().writeAll(output) catch |err| {
+    std.fs.File.stdout().writeAll(final_output) catch |err| {
         std.debug.print("Error writing to stdout: {}\n", .{err});
         std.process.exit(1);
     };
