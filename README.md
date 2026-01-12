@@ -1,4 +1,4 @@
-# zig-context-remaining
+# zccinfo
 
 A Zig CLI tool that calculates Claude Code context usage percentage by parsing JSONL transcript files.
 
@@ -22,12 +22,58 @@ This tool reads JSON input from stdin containing the transcript path and model i
 
 ## Installation
 
-**Prerequisites**: [Zig](https://ziglang.org/) compiler
+### Quick Install (Recommended)
+
+Install the latest release with a single command:
 
 ```bash
+curl -sSL https://raw.githubusercontent.com/tuananh131001/zccinfo/main/install.sh | sh
+```
+
+This will:
+- Detect your OS (macOS/Linux) and architecture (x86_64/ARM64)
+- Download the correct pre-built binary
+- Verify the checksum
+- Install to `~/.local/bin`
+
+To install to a custom location:
+
+```bash
+INSTALL_DIR=/usr/local/bin curl -sSL https://raw.githubusercontent.com/tuananh131001/zccinfo/main/install.sh | sh
+```
+
+### Manual Download
+
+Download the appropriate binary from [GitHub Releases](https://github.com/tuananh131001/zccinfo/releases):
+
+| Platform | Archive |
+|----------|---------|
+| macOS (Apple Silicon) | `zig-context-aarch64-macos.tar.gz` |
+| macOS (Intel) | `zig-context-x86_64-macos.tar.gz` |
+| Linux (x86_64) | `zig-context-x86_64-linux.tar.gz` |
+| Linux (ARM64) | `zig-context-aarch64-linux.tar.gz` |
+
+### Build from Source
+
+**Prerequisites**: [Zig](https://ziglang.org/) 0.14.0 or later
+
+```bash
+# Clone the repository
+git clone https://github.com/tuananh131001/zccinfo.git
+cd zccinfo
+
 # Build the project
 zig build
 
+# The binary is at zig-out/bin/zig-context
+
+# Or build optimized release binaries for all platforms
+zig build release
+```
+
+### Development Commands
+
+```bash
 # Run the application
 zig build run
 

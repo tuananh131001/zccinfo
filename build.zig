@@ -37,4 +37,38 @@ pub fn build(b: *std.Build) void {
 
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&run_exe_unit_tests.step);
+
+    // Release step: cross-compile for all supported platforms
+    const release_step = b.step("release", "Build release binaries for all platforms");
+
+    const release_targets = [_]std.Target.Query{
+        .{ .cpu_arch = .aarch64, .os_tag = .macos },
+        .{ .cpu_arch = .x86_64, .os_tag = .macos },
+        .{ .cpu_arch = .x86_64, .os_tag = .linux, .abi = .musl },
+        .{ .cpu_arch = .aarch64, .os_tag = .linux, .abi = .musl },
+    };
+
+    for (release_targets) |release_target| {
+        const release_exe = b.addExecutable(.{
+            .name = "zig-context",
+            .root_module = b.createModule(.{
+                .root_source_file = b.path("src/main.zig"),
+                .target = b.resolveTargetQuery(release_target),
+                .optimize = .ReleaseSmall,
+            }),
+        });
+
+        const target_output = b.addInstallArtifact(release_exe, .{
+            .dest_dir = .{
+                .override = .{
+                    .custom = b.fmt("release/{s}-{s}", .{
+                        @tagName(release_target.cpu_arch.?),
+                        @tagName(release_target.os_tag.?),
+                    }),
+                },
+            },
+        });
+
+        release_step.dependOn(&target_output.step);
+    }
 }

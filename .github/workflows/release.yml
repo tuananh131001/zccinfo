@@ -1,0 +1,63 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Zig
+        uses: mlugg/setup-zig@v1
+        with:
+          version: 0.14.0
+
+      - name: Build release binaries
+        run: zig build release
+
+      - name: Create archives
+        run: |
+          cd zig-out/release
+          for dir in */; do
+            platform="${dir%/}"
+            tar -czvf "zig-context-${platform}.tar.gz" -C "$platform" zig-context
+          done
+
+      - name: Generate checksums
+        run: |
+          cd zig-out/release
+          sha256sum *.tar.gz > checksums.txt
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-binaries
+          path: |
+            zig-out/release/*.tar.gz
+            zig-out/release/checksums.txt
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-binaries
+          path: dist
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.tar.gz
+            dist/checksums.txt
+          generate_release_notes: true
