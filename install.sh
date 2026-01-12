@@ -2,7 +2,7 @@
 set -e
 
 REPO="tuananh131001/zccinfo"
-BINARY_NAME="zig-context"
+BINARY_NAME="zccinfo"
 INSTALL_DIR="${INSTALL_DIR:-$HOME/.local/bin}"
 
 # Detect OS and architecture

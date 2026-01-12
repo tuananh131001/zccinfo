@@ -43,7 +43,7 @@ curl -sSL https://raw.githubusercontent.com/tuananh131001/zccinfo/main/install.s
 {
   "status_line": {
     "type": "command",
-    "command": "~/.local/bin/zig-context"
+    "command": "~/.local/bin/zccinfo"
   }
 }
 ```
@@ -64,10 +64,10 @@ Download the appropriate binary from [GitHub Releases](https://github.com/tuanan
 
 | Platform | Archive |
 |----------|---------|
-| macOS (Apple Silicon) | `zig-context-aarch64-macos.tar.gz` |
-| macOS (Intel) | `zig-context-x86_64-macos.tar.gz` |
-| Linux (x86_64) | `zig-context-x86_64-linux.tar.gz` |
-| Linux (ARM64) | `zig-context-aarch64-linux.tar.gz` |
+| macOS (Apple Silicon) | `zccinfo-aarch64-macos.tar.gz` |
+| macOS (Intel) | `zccinfo-x86_64-macos.tar.gz` |
+| Linux (x86_64) | `zccinfo-x86_64-linux.tar.gz` |
+| Linux (ARM64) | `zccinfo-aarch64-linux.tar.gz` |
 
 ### Build from Source
 
@@ -81,7 +81,7 @@ cd zccinfo
 # Build the project
 zig build
 
-# The binary is at zig-out/bin/zig-context
+# The binary is at zig-out/bin/zccinfo
 
 # Or build optimized release binaries for all platforms
 zig build release
