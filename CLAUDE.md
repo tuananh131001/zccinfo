@@ -2,6 +2,18 @@
 
 Project uses Zig 0.15.2
 
+## Project Structure
+
+```
+src/
+├── main.zig
+├── features/
+│   ├── feature.zig
+└── tests/
+    ├── main_test.zig
+    ├── feature_test.zig
+```
+
 ## MCP
 
 Use context7 to get latest docs of Zig programming language - libraryId: "/websites/ziglang_0_15_2"

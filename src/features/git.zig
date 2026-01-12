@@ -103,5 +103,5 @@ pub fn getCurrentBranch(allocator: std.mem.Allocator) ?GitStatus {
 }
 
 test {
-    _ = @import("git_test.zig");
+    _ = @import("../tests/git_test.zig");
 }

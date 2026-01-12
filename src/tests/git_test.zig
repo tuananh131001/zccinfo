@@ -1,5 +1,5 @@
 const std = @import("std");
-const git = @import("git.zig");
+const git = @import("../features/git.zig");
 const testing = std.testing;
 
 test "parseGitHead extracts branch from ref" {
