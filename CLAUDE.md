@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+Project uses Zig 0.15.2
+
 ## MCP
 
 Use context7 to get latest docs of Zig programming language - libraryId: "/websites/ziglang_0_15_2"

@@ -55,7 +55,7 @@ Download the appropriate binary from [GitHub Releases](https://github.com/tuanan
 
 ### Build from Source
 
-**Prerequisites**: [Zig](https://ziglang.org/) 0.14.0 or later
+**Prerequisites**: [Zig](https://ziglang.org/) 0.15.2 or later
 
 ```bash
 # Clone the repository
