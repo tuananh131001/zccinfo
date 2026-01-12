@@ -6,6 +6,8 @@ A fast, lightweight Zig CLI tool that provides an informative status line for Cl
 
 A blazing-fast alternative to JavaScript/Bun-based Claude Code status line tools. Written in Zig for minimal startup time and zero runtime dependencies.
 
+<img width="952" height="342" alt="96868" src="https://github.com/user-attachments/assets/fa1b1214-3365-4f23-ac8c-4853e06e462a" />
+
 ## Features
 
 ### Status Line
