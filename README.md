@@ -1,24 +1,30 @@
 # zccinfo
 
-A Zig CLI tool that calculates Claude Code context usage percentage by parsing JSONL transcript files.
+A fast, lightweight Zig CLI tool that provides an informative status line for Claude Code, displaying context usage and git branch information.
 
 ## Overview
 
-This tool reads JSON input from stdin containing the transcript path and model info, then outputs the context usage as a colored percentage status line.
-
-**Input**: JSON via stdin with `model.id` and `transcript_path`
-
-**Output**: Colored status line showing context percentage (e.g., `Ctx: 45.2%`)
+A blazing-fast alternative to JavaScript/Bun-based Claude Code status line tools. Written in Zig for minimal startup time and zero runtime dependencies.
 
 ## Features
 
+### Status Line
+- **Context usage percentage** with colored output (e.g., `Ctx: 45.2%`)
+- **Git branch display** with Powerline icon (e.g., ` main`)
+- Graceful handling when not in a git repository
+
+### Context Tracking
 - Parses JSONL transcript files to extract token usage from the most recent entry
 - Supports multiple Claude models:
   - 200K tokens (default for most models)
   - 1M tokens for Claude Sonnet 4.5 with `[1m]` suffix
-- Colored terminal output
 - Filters out sidechain messages and API errors
 - Smart timestamp tracking for finding the most recent entry
+
+### Git Integration
+- Detects current branch from `.git/HEAD`
+- Shows short SHA (7 chars) in detached HEAD state
+- Walks up directories to find git root
 
 ## Installation
 
