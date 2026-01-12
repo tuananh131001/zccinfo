@@ -1,13 +1,15 @@
 const std = @import("std");
 const git = @import("git.zig");
+const path = @import("path.zig");
 
 // ANSI color codes
 const yellow = "\x1b[33m";
 const magenta = "\x1b[35m";
 const reset = "\x1b[0m";
 
-// Git display constants
+// Display constants
 const git_icon = "\u{e0a0}"; // Powerline git branch icon
+const folder_icon = "\u{f07b}"; // Font Awesome folder icon (Nerd Font)
 const separator = " | ";
 
 // Maximum input size (1MB should be plenty for JSON input)
@@ -21,6 +23,7 @@ const Model = struct {
 const StatusInput = struct {
     model: ?Model = null,
     transcript_path: ?[]const u8 = null,
+    cwd: ?[]const u8 = null,
 };
 
 // JSON structures for parsing JSONL transcript lines
@@ -103,34 +106,80 @@ pub fn main() !void {
     var git_status = git.getCurrentBranch(allocator);
     defer if (git_status) |*gs| gs.deinit();
 
+    // Get folder name from cwd
+    const folder_name = if (status.cwd) |cwd| path.basename(cwd) else null;
+
     // Format output with color
-    var buf: [256]u8 = undefined;
+    var buf: [512]u8 = undefined;
     const output = if (git_status) |gs| blk: {
         if (gs.branch) |branch| {
+            if (folder_name) |folder| {
+                // Full output: Ctx | git branch | folder
+                break :blk std.fmt.bufPrint(&buf, "{s}Ctx: {d:.1}%{s}{s}{s}{s} {s}{s}{s}{s}{s} {s}{s}\n", .{
+                    yellow,
+                    clamped_percentage,
+                    reset,
+                    separator,
+                    magenta,
+                    git_icon,
+                    branch,
+                    reset,
+                    separator,
+                    magenta,
+                    folder_icon,
+                    folder,
+                    reset,
+                }) catch {
+                    std.debug.print("Error formatting output\n", .{});
+                    std.process.exit(1);
+                };
+            } else {
+                // Output without folder: Ctx | git branch
+                break :blk std.fmt.bufPrint(&buf, "{s}Ctx: {d:.1}%{s}{s}{s}{s} {s}{s}\n", .{
+                    yellow,
+                    clamped_percentage,
+                    reset,
+                    separator,
+                    magenta,
+                    git_icon,
+                    branch,
+                    reset,
+                }) catch {
+                    std.debug.print("Error formatting output\n", .{});
+                    std.process.exit(1);
+                };
+            }
+        }
+        break :blk null;
+    } else null;
+
+    const final_output = output orelse blk: {
+        if (folder_name) |folder| {
+            // Output with folder only: Ctx | folder
             break :blk std.fmt.bufPrint(&buf, "{s}Ctx: {d:.1}%{s}{s}{s}{s} {s}{s}\n", .{
                 yellow,
                 clamped_percentage,
                 reset,
                 separator,
                 magenta,
-                git_icon,
-                branch,
+                folder_icon,
+                folder,
+                reset,
+            }) catch {
+                std.debug.print("Error formatting output\n", .{});
+                std.process.exit(1);
+            };
+        } else {
+            // Minimal output: Ctx only
+            break :blk std.fmt.bufPrint(&buf, "{s}Ctx: {d:.1}%{s}\n", .{
+                yellow,
+                clamped_percentage,
                 reset,
             }) catch {
                 std.debug.print("Error formatting output\n", .{});
                 std.process.exit(1);
             };
         }
-        break :blk null;
-    } else null;
-
-    const final_output = output orelse std.fmt.bufPrint(&buf, "{s}Ctx: {d:.1}%{s}\n", .{
-        yellow,
-        clamped_percentage,
-        reset,
-    }) catch {
-        std.debug.print("Error formatting output\n", .{});
-        std.process.exit(1);
     };
 
     // Write to stdout
