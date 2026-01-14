@@ -2,6 +2,7 @@ const std = @import("std");
 const git = @import("features/git.zig");
 const path = @import("features/path.zig");
 const model_module = @import("features/model.zig");
+const version_module = @import("features/version.zig");
 
 // ANSI color codes
 const yellow = "\x1b[33m";
@@ -22,6 +23,7 @@ const StatusInput = struct {
     model: ?model_module.Model = null,
     transcript_path: ?[]const u8 = null,
     cwd: ?[]const u8 = null,
+    version: ?[]const u8 = null,
 };
 
 // JSON structures for parsing JSONL transcript lines
@@ -114,35 +116,71 @@ pub fn main() !void {
     else
         null;
 
+    // Get version display string
+    var version_display_buf: [32]u8 = undefined;
+    const version_display: ?[]const u8 = if (status.version) |v|
+        version_module.formatVersion(&version_display_buf, v)
+    else
+        null;
+
     // Format output with color
     var buf: [512]u8 = undefined;
     const output = if (git_status) |gs| blk: {
         if (gs.branch) |branch| {
             if (folder_name) |folder| {
                 if (model_display) |model| {
-                    // Full output: Ctx | git branch | folder | model
-                    break :blk std.fmt.bufPrint(&buf, "{s}Ctx: {d:.1}%{s}{s}{s}{s} {s}{s}{s}{s}{s} {s}{s}{s}{s} {s}{s}\n", .{
-                        yellow,
-                        clamped_percentage,
-                        reset,
-                        separator,
-                        magenta,
-                        git_icon,
-                        branch,
-                        reset,
-                        separator,
-                        magenta,
-                        folder_icon,
-                        folder,
-                        reset,
-                        separator,
-                        model_icon,
-                        model,
-                        reset,
-                    }) catch {
-                        std.debug.print("Error formatting output\n", .{});
-                        std.process.exit(1);
-                    };
+                    if (version_display) |ver| {
+                        // Full output: Ctx | git branch | folder | model | version
+                        break :blk std.fmt.bufPrint(&buf, "{s}Ctx: {d:.1}%{s}{s}{s}{s} {s}{s}{s}{s}{s} {s}{s}{s}{s} {s}{s}{s}{s} {s}\n", .{
+                            yellow,
+                            clamped_percentage,
+                            reset,
+                            separator,
+                            magenta,
+                            git_icon,
+                            branch,
+                            reset,
+                            separator,
+                            magenta,
+                            folder_icon,
+                            folder,
+                            reset,
+                            separator,
+                            model_icon,
+                            model,
+                            reset,
+                            separator,
+                            version_module.version_icon,
+                            ver,
+                        }) catch {
+                            std.debug.print("Error formatting output\n", .{});
+                            std.process.exit(1);
+                        };
+                    } else {
+                        // Full output: Ctx | git branch | folder | model (no version)
+                        break :blk std.fmt.bufPrint(&buf, "{s}Ctx: {d:.1}%{s}{s}{s}{s} {s}{s}{s}{s}{s} {s}{s}{s}{s} {s}{s}\n", .{
+                            yellow,
+                            clamped_percentage,
+                            reset,
+                            separator,
+                            magenta,
+                            git_icon,
+                            branch,
+                            reset,
+                            separator,
+                            magenta,
+                            folder_icon,
+                            folder,
+                            reset,
+                            separator,
+                            model_icon,
+                            model,
+                            reset,
+                        }) catch {
+                            std.debug.print("Error formatting output\n", .{});
+                            std.process.exit(1);
+                        };
+                    }
                 } else {
                     // Output: Ctx | git branch | folder (no model)
                     break :blk std.fmt.bufPrint(&buf, "{s}Ctx: {d:.1}%{s}{s}{s}{s} {s}{s}{s}{s}{s} {s}{s}\n", .{
@@ -166,24 +204,48 @@ pub fn main() !void {
                 }
             } else {
                 if (model_display) |model| {
-                    // Output: Ctx | git branch | model
-                    break :blk std.fmt.bufPrint(&buf, "{s}Ctx: {d:.1}%{s}{s}{s}{s} {s}{s}{s}{s} {s}{s}\n", .{
-                        yellow,
-                        clamped_percentage,
-                        reset,
-                        separator,
-                        magenta,
-                        git_icon,
-                        branch,
-                        reset,
-                        separator,
-                        model_icon,
-                        model,
-                        reset,
-                    }) catch {
-                        std.debug.print("Error formatting output\n", .{});
-                        std.process.exit(1);
-                    };
+                    if (version_display) |ver| {
+                        // Output: Ctx | git branch | model | version
+                        break :blk std.fmt.bufPrint(&buf, "{s}Ctx: {d:.1}%{s}{s}{s}{s} {s}{s}{s}{s} {s}{s}{s}{s} {s}\n", .{
+                            yellow,
+                            clamped_percentage,
+                            reset,
+                            separator,
+                            magenta,
+                            git_icon,
+                            branch,
+                            reset,
+                            separator,
+                            model_icon,
+                            model,
+                            reset,
+                            separator,
+                            version_module.version_icon,
+                            ver,
+                        }) catch {
+                            std.debug.print("Error formatting output\n", .{});
+                            std.process.exit(1);
+                        };
+                    } else {
+                        // Output: Ctx | git branch | model (no version)
+                        break :blk std.fmt.bufPrint(&buf, "{s}Ctx: {d:.1}%{s}{s}{s}{s} {s}{s}{s}{s} {s}{s}\n", .{
+                            yellow,
+                            clamped_percentage,
+                            reset,
+                            separator,
+                            magenta,
+                            git_icon,
+                            branch,
+                            reset,
+                            separator,
+                            model_icon,
+                            model,
+                            reset,
+                        }) catch {
+                            std.debug.print("Error formatting output\n", .{});
+                            std.process.exit(1);
+                        };
+                    }
                 } else {
                     // Output without folder: Ctx | git branch
                     break :blk std.fmt.bufPrint(&buf, "{s}Ctx: {d:.1}%{s}{s}{s}{s} {s}{s}\n", .{
@@ -208,24 +270,48 @@ pub fn main() !void {
     const final_output = output orelse blk: {
         if (folder_name) |folder| {
             if (model_display) |model| {
-                // Output: Ctx | folder | model
-                break :blk std.fmt.bufPrint(&buf, "{s}Ctx: {d:.1}%{s}{s}{s}{s} {s}{s}{s}{s} {s}{s}\n", .{
-                    yellow,
-                    clamped_percentage,
-                    reset,
-                    separator,
-                    magenta,
-                    folder_icon,
-                    folder,
-                    reset,
-                    separator,
-                    model_icon,
-                    model,
-                    reset,
-                }) catch {
-                    std.debug.print("Error formatting output\n", .{});
-                    std.process.exit(1);
-                };
+                if (version_display) |ver| {
+                    // Output: Ctx | folder | model | version
+                    break :blk std.fmt.bufPrint(&buf, "{s}Ctx: {d:.1}%{s}{s}{s}{s} {s}{s}{s}{s} {s}{s}{s}{s} {s}\n", .{
+                        yellow,
+                        clamped_percentage,
+                        reset,
+                        separator,
+                        magenta,
+                        folder_icon,
+                        folder,
+                        reset,
+                        separator,
+                        model_icon,
+                        model,
+                        reset,
+                        separator,
+                        version_module.version_icon,
+                        ver,
+                    }) catch {
+                        std.debug.print("Error formatting output\n", .{});
+                        std.process.exit(1);
+                    };
+                } else {
+                    // Output: Ctx | folder | model (no version)
+                    break :blk std.fmt.bufPrint(&buf, "{s}Ctx: {d:.1}%{s}{s}{s}{s} {s}{s}{s}{s} {s}{s}\n", .{
+                        yellow,
+                        clamped_percentage,
+                        reset,
+                        separator,
+                        magenta,
+                        folder_icon,
+                        folder,
+                        reset,
+                        separator,
+                        model_icon,
+                        model,
+                        reset,
+                    }) catch {
+                        std.debug.print("Error formatting output\n", .{});
+                        std.process.exit(1);
+                    };
+                }
             } else {
                 // Output with folder only: Ctx | folder
                 break :blk std.fmt.bufPrint(&buf, "{s}Ctx: {d:.1}%{s}{s}{s}{s} {s}{s}\n", .{
@@ -244,19 +330,38 @@ pub fn main() !void {
             }
         } else {
             if (model_display) |model| {
-                // Output: Ctx | model
-                break :blk std.fmt.bufPrint(&buf, "{s}Ctx: {d:.1}%{s}{s}{s} {s}{s}\n", .{
-                    yellow,
-                    clamped_percentage,
-                    reset,
-                    separator,
-                    model_icon,
-                    model,
-                    reset,
-                }) catch {
-                    std.debug.print("Error formatting output\n", .{});
-                    std.process.exit(1);
-                };
+                if (version_display) |ver| {
+                    // Output: Ctx | model | version
+                    break :blk std.fmt.bufPrint(&buf, "{s}Ctx: {d:.1}%{s}{s}{s} {s}{s}{s}{s} {s}\n", .{
+                        yellow,
+                        clamped_percentage,
+                        reset,
+                        separator,
+                        model_icon,
+                        model,
+                        reset,
+                        separator,
+                        version_module.version_icon,
+                        ver,
+                    }) catch {
+                        std.debug.print("Error formatting output\n", .{});
+                        std.process.exit(1);
+                    };
+                } else {
+                    // Output: Ctx | model (no version)
+                    break :blk std.fmt.bufPrint(&buf, "{s}Ctx: {d:.1}%{s}{s}{s} {s}{s}\n", .{
+                        yellow,
+                        clamped_percentage,
+                        reset,
+                        separator,
+                        model_icon,
+                        model,
+                        reset,
+                    }) catch {
+                        std.debug.print("Error formatting output\n", .{});
+                        std.process.exit(1);
+                    };
+                }
             } else {
                 // Minimal output: Ctx only
                 break :blk std.fmt.bufPrint(&buf, "{s}Ctx: {d:.1}%{s}\n", .{
