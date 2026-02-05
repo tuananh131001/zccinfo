@@ -1,3 +1,8 @@
 .zig-cache/
 zig-out/
 .DS_Store
+
+# Nix
+.direnv/
+result
+result-*

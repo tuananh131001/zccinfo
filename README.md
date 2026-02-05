@@ -43,7 +43,7 @@ curl -sSL https://raw.githubusercontent.com/tuananh131001/zccinfo/main/install.s
 
 ```json
 {
-  "status_line": {
+  "statusLine": {
     "type": "command",
     "command": "~/.local/bin/zccinfo"
   }
@@ -87,6 +87,51 @@ zig build
 
 # Or build optimized release binaries for all platforms
 zig build release
+```
+
+### NixOS / Nix
+
+Try without installing:
+
+```bash
+nix run github:tuananh131001/zccinfo
+```
+
+Install imperatively:
+
+```bash
+nix profile install github:tuananh131001/zccinfo
+```
+
+For NixOS/Home Manager flake configs, add the overlay:
+
+```nix
+{
+  inputs.zccinfo.url = "github:tuananh131001/zccinfo";
+
+  # In your nixosConfiguration or homeManagerConfiguration:
+  nixpkgs.overlays = [ zccinfo.overlays.default ];
+  # Then add to packages:
+  environment.systemPackages = [ pkgs.zccinfo ];
+}
+```
+
+Add to your Claude Code settings (`~/.claude/settings.json`):
+
+```json
+{
+  "statusLine": {
+    "type": "command",
+    "command": "zccinfo"
+  }
+}
+```
+
+For development with `nix develop` or `direnv allow`:
+
+```bash
+nix develop        # enter dev shell with Zig 0.15.2
+direnv allow       # or auto-activate via .envrc
 ```
 
 ### Development Commands
