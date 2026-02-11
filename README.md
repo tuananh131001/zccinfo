@@ -145,6 +145,16 @@ zig build test
 ```
 
 
+## Roadmap
+
+- [ ] Config system (TOML)
+- [ ] Auto-wrap
+- [ ] Windows support
+- [ ] Cost/token tracking
+- [ ] Catppuccin theme & TokyoNight theme
+- [ ] Multiline support
+- [ ] [More...](https://github.com/tuananh131001/zccinfo/projects)
+
 ## Benchmark Results
 
 ### 1. Startup Time (Cold Start)
