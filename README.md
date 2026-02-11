@@ -6,6 +6,8 @@ A fast, lightweight Zig CLI tool that provides an informative status line for Cl
 
 A blazing-fast alternative to JavaScript/Bun-based Claude Code status line tools. Written in Zig for minimal startup time and zero runtime dependencies.
 
+<img width="952" height="342" alt="96868" src="https://github.com/user-attachments/assets/fa1b1214-3365-4f23-ac8c-4853e06e462a" />
+
 ## Features
 
 ### Status Line
@@ -41,7 +43,7 @@ curl -sSL https://raw.githubusercontent.com/tuananh131001/zccinfo/main/install.s
 
 ```json
 {
-  "status_line": {
+  "statusLine": {
     "type": "command",
     "command": "~/.local/bin/zccinfo"
   }
@@ -85,6 +87,51 @@ zig build
 
 # Or build optimized release binaries for all platforms
 zig build release
+```
+
+### NixOS / Nix
+
+Try without installing:
+
+```bash
+nix run github:tuananh131001/zccinfo
+```
+
+Install imperatively:
+
+```bash
+nix profile install github:tuananh131001/zccinfo
+```
+
+For NixOS/Home Manager flake configs, add the overlay:
+
+```nix
+{
+  inputs.zccinfo.url = "github:tuananh131001/zccinfo";
+
+  # In your nixosConfiguration or homeManagerConfiguration:
+  nixpkgs.overlays = [ zccinfo.overlays.default ];
+  # Then add to packages:
+  environment.systemPackages = [ pkgs.zccinfo ];
+}
+```
+
+Add to your Claude Code settings (`~/.claude/settings.json`):
+
+```json
+{
+  "statusLine": {
+    "type": "command",
+    "command": "zccinfo"
+  }
+}
+```
+
+For development with `nix develop` or `direnv allow`:
+
+```bash
+nix develop        # enter dev shell with Zig 0.15.2
+direnv allow       # or auto-activate via .envrc
 ```
 
 ### Development Commands
