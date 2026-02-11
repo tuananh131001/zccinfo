@@ -1,32 +1,10 @@
 # zccinfo
 
-A fast, lightweight Zig CLI tool that provides an informative status line for Claude Code, displaying context usage and git branch information.
-
 ## Overview
 
 A blazing-fast alternative to JavaScript/Bun-based Claude Code status line tools. Written in Zig for minimal startup time and zero runtime dependencies.
 
 <img width="952" height="342" alt="96868" src="https://github.com/user-attachments/assets/fa1b1214-3365-4f23-ac8c-4853e06e462a" />
-
-## Features
-
-### Status Line
-- **Context usage percentage** with colored output (e.g., `Ctx: 45.2%`)
-- **Git branch display** with Powerline icon (e.g., ` main`)
-- Graceful handling when not in a git repository
-
-### Context Tracking
-- Parses JSONL transcript files to extract token usage from the most recent entry
-- Supports multiple Claude models:
-  - 200K tokens (default for most models)
-  - 1M tokens for Claude Sonnet 4.5 with `[1m]` suffix
-- Filters out sidechain messages and API errors
-- Smart timestamp tracking for finding the most recent entry
-
-### Git Integration
-- Detects current branch from `.git/HEAD`
-- Shows short SHA (7 chars) in detached HEAD state
-- Walks up directories to find git root
 
 ## Installation
 
@@ -62,14 +40,7 @@ INSTALL_DIR=/usr/local/bin curl -sSL https://raw.githubusercontent.com/tuananh13
 
 ### Manual Download
 
-Download the appropriate binary from [GitHub Releases](https://github.com/tuananh131001/zccinfo/releases):
-
-| Platform | Archive |
-|----------|---------|
-| macOS (Apple Silicon) | `zccinfo-aarch64-macos.tar.gz` |
-| macOS (Intel) | `zccinfo-x86_64-macos.tar.gz` |
-| Linux (x86_64) | `zccinfo-x86_64-linux.tar.gz` |
-| Linux (ARM64) | `zccinfo-aarch64-linux.tar.gz` |
+Download the appropriate binary from [GitHub Releases](https://github.com/tuananh131001/zccinfo/releases)
 
 ### Build from Source
 
@@ -90,18 +61,6 @@ zig build release
 ```
 
 ### NixOS / Nix
-
-Try without installing:
-
-```bash
-nix run github:tuananh131001/zccinfo
-```
-
-Install imperatively:
-
-```bash
-nix profile install github:tuananh131001/zccinfo
-```
 
 For NixOS/Home Manager flake configs, add the overlay:
 
@@ -127,23 +86,6 @@ Add to your Claude Code settings (`~/.claude/settings.json`):
 }
 ```
 
-For development with `nix develop` or `direnv allow`:
-
-```bash
-nix develop        # enter dev shell with Zig 0.15.2
-direnv allow       # or auto-activate via .envrc
-```
-
-### Development Commands
-
-```bash
-# Run the application
-zig build run
-
-# Run unit tests
-zig build test
-```
-
 
 ## Roadmap
 
@@ -155,38 +97,9 @@ zig build test
 - [ ] Multiline support
 - [ ] [More...](https://github.com/tuananh131001/zccinfo/projects)
 
-## Benchmark Results
+# Development and Misc
 
-### 1. Startup Time (Cold Start)
+For development with `nix develop` or `direnv allow`, see [development guide](docs/development.md).
 
-Using small.jsonl (~1MB)
-
-| Tool | Mean (ms) | Std Dev (ms) | Speedup |
-|------|-----------|--------------|---------|
-| zccinfo (Zig) | 10.56 | 16.33 | baseline |
-| ccstatusline (JS) | 143.35 | 14.77 | 13.6x slower |
-
-### 2. JSONL Parsing Performance
-
-| File Size | zccinfo (ms) | ccstatusline (ms) | Speedup |
-|-----------|--------------|-------------------|---------|
-| small (~1MB) | 8.19 | 150.49 | 18.4x |
-| medium (~10MB) | 76.95 | 157.82 | 2.1x |
-| large (~100MB) | 846.25 | 216.16 | 0.3x |
-
-### 3. Git Branch Detection
-
-| Tool | Mean (ms) | Approach |
-|------|-----------|----------|
-| zccinfo | 11.15 | Direct file read of .git/HEAD |
-| ccstatusline | 150.65 | execSync('git branch') |
-
-**Speedup**: zccinfo is 13.5x faster
-
-### 4. Binary/Bundle Size
-
-| Tool | Size | Notes |
-|------|------|-------|
-| zccinfo | ~100KB | Native Zig binary (ReleaseSmall) |
-| ccstatusline | ~1MB+ | Bundled JS (requires Bun/Node runtime) |
+See [detailed benchmark results](docs/benchmarks.md) for startup time, JSONL parsing, git branch detection, and binary size comparisons.
 
