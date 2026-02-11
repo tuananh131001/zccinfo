@@ -1,0 +1,54 @@
+name: Install Method Tests
+
+on:
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+jobs:
+  test-install-script:
+    name: Test install.sh
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run install.sh (default directory)
+        run: sh install.sh
+
+      - name: Verify default install
+        run: |
+          test -x "$HOME/.local/bin/zccinfo"
+          "$HOME/.local/bin/zccinfo" --version
+
+      - name: Run install.sh (custom directory)
+        env:
+          INSTALL_DIR: /tmp/custom-install
+        run: sh install.sh
+
+      - name: Verify custom install
+        run: |
+          test -x /tmp/custom-install/zccinfo
+          /tmp/custom-install/zccinfo --version
+
+  test-nix-build:
+    name: Test Nix build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v27
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
+      - name: Build with Nix
+        run: nix build .#zccinfo
+
+      - name: Verify Nix build
+        run: |
+          test -x ./result/bin/zccinfo
+          ./result/bin/zccinfo --version
+
+      - name: Check flake
+        run: nix flake check
