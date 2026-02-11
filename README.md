@@ -86,6 +86,17 @@ Add to your Claude Code settings (`~/.claude/settings.json`):
 }
 ```
 
+
+## Roadmap
+
+- [ ] Config system (TOML)
+- [ ] Auto-wrap
+- [ ] Windows support
+- [ ] Cost/token tracking
+- [ ] Catppuccin theme & TokyoNight theme
+- [ ] Multiline support
+- [ ] [More...](https://github.com/tuananh131001/zccinfo/projects)
+
 # Development and Misc
 
 For development with `nix develop` or `direnv allow`, see [development guide](docs/development.md).
