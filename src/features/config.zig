@@ -1,5 +1,5 @@
 const std = @import("std");
-const toml = @import("toml.zig");
+const toml = @import("toml");
 
 /// ANSI color codes
 pub const Color = enum {

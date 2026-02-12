@@ -1,6 +1,6 @@
 const std = @import("std");
+const toml = @import("toml");
 const config_module = @import("../features/config.zig");
-const toml = @import("../features/toml.zig");
 
 const expectEqual = std.testing.expectEqual;
 const expectEqualStrings = std.testing.expectEqualStrings;
