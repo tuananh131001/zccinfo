@@ -1,0 +1,47 @@
+# ~/.claude/zccinfo/config.toml
+#
+# zccinfo configuration file
+# All options shown below with their default values.
+# Uncomment and modify to customize your statusline.
+
+# Format string: {segment} placeholders with literal text between them.
+# Available segments: context, git, folder, model, version
+# format = "{context} | {git} | {folder} | {model} | {version}"
+
+# Change the separator:
+# format = "{context} :: {git} :: {folder} :: {model} :: {version}"
+
+# Reorder or remove segments:
+# format = "{context} | {model} | {git}"
+
+# [context]
+# enabled = true
+# color = "yellow"
+# icon = ""
+# prefix = "Ctx: "
+# suffix = "%"
+
+# [git]
+# enabled = true
+# color = "magenta"
+# icon = ""          # Powerline git branch icon (paste Nerd Font character)
+
+# [folder]
+# enabled = true
+# color = "magenta"
+# icon = ""          # Nerd Font folder icon (paste Nerd Font character)
+
+# [model]
+# enabled = true
+# color = ""            # No color by default
+# icon = "🤖"
+
+# [version]
+# enabled = true
+# color = ""            # No color by default
+# icon = "📦"
+
+# Available colors: black, red, green, yellow, blue, magenta, cyan, white
+# Use "" (empty) for no color.
+#
+# Icons are pasted as literal UTF-8 characters (Nerd Font glyphs, emoji, etc.)

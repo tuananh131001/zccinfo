@@ -4,17 +4,11 @@ const path = @import("features/path.zig");
 const model_module = @import("features/model.zig");
 const version_module = @import("features/version.zig");
 const context = @import("features/context.zig");
+const config_module = @import("features/config.zig");
+const format_module = @import("features/format.zig");
+const toml = @import("features/toml.zig");
 
-// ANSI color codes
-const yellow = "\x1b[33m";
-const magenta = "\x1b[35m";
-const reset = "\x1b[0m";
-
-// Display constants
-const git_icon = "\u{e0a0}"; // Powerline git branch icon
-const folder_icon = "\u{f07b}"; // Font Awesome folder icon (Nerd Font)
-const model_icon = "🤖"; // Robot emoji for model display
-const separator = " | ";
+const reset = config_module.reset;
 
 // Maximum input size (1MB should be plenty for JSON input)
 const max_input_size = 1024 * 1024;
@@ -23,6 +17,9 @@ pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
+
+    // Load configuration (falls back to defaults on any error)
+    const config = config_module.loadConfig();
 
     // Read stdin
     const stdin_input = readStdin(allocator) catch |err| {
@@ -74,39 +71,98 @@ pub fn main() !void {
     else
         null;
 
-    // Format output by building segments dynamically
-    var buf: [512]u8 = undefined;
-    var fbs = std.io.fixedBufferStream(&buf);
-    const writer = fbs.writer();
+    // Build each segment's display string using config colors/icons
+    var ctx_seg_buf: [128]u8 = undefined;
+    var git_seg_buf: [128]u8 = undefined;
+    var folder_seg_buf: [128]u8 = undefined;
+    var model_seg_buf: [128]u8 = undefined;
+    var version_seg_buf: [128]u8 = undefined;
 
-    // Always write context percentage first
-    writer.print("{s}Ctx: {d:.1}%{s}", .{ yellow, clamped_percentage, reset }) catch {
-        std.debug.print("Error formatting output\n", .{});
-        std.process.exit(1);
+    const values = format_module.SegmentValues{
+        .context = if (config.context.enabled)
+            buildContextSegment(&ctx_seg_buf, clamped_percentage, &config)
+        else
+            null,
+        .git = if (config.git.enabled)
+            buildSegment(&git_seg_buf, getGitBranch(git_status), config.git)
+        else
+            null,
+        .folder = if (config.folder.enabled)
+            buildSegment(&folder_seg_buf, folder_name, config.folder)
+        else
+            null,
+        .model = if (config.model.enabled)
+            buildSegment(&model_seg_buf, model_display, config.model)
+        else
+            null,
+        .version = if (config.version.enabled)
+            buildSegment(&version_seg_buf, version_display, config.version)
+        else
+            null,
     };
 
-    // Append each optional segment with separator
-    if (git_status) |gs| {
-        if (gs.branch) |branch| {
-            writer.print("{s}{s}{s} {s}{s}", .{ separator, magenta, git_icon, branch, reset }) catch {};
-        }
-    }
-    if (folder_name) |folder| {
-        writer.print("{s}{s}{s} {s}{s}", .{ separator, magenta, folder_icon, folder, reset }) catch {};
-    }
-    if (model_display) |model| {
-        writer.print("{s}{s} {s}{s}", .{ separator, model_icon, model, reset }) catch {};
-    }
-    if (version_display) |ver| {
-        writer.print("{s}{s} {s}", .{ separator, version_module.version_icon, ver }) catch {};
-    }
-    writer.writeByte('\n') catch {};
+    // Tokenize format string and render
+    const tokens = format_module.tokenize(config.getFormat());
 
-    // Write to stdout
-    std.fs.File.stdout().writeAll(fbs.getWritten()) catch |err| {
+    var out_buf: [512]u8 = undefined;
+    const output = format_module.render(&out_buf, &tokens, &values);
+
+    // Write output + newline to stdout
+    const stdout = std.fs.File.stdout();
+    stdout.writeAll(output) catch |err| {
         std.debug.print("Error writing to stdout: {}\n", .{err});
         std.process.exit(1);
     };
+    stdout.writeAll("\n") catch {};
+}
+
+fn getGitBranch(git_status: ?git.GitStatus) ?[]const u8 {
+    if (git_status) |gs| {
+        return gs.branch;
+    }
+    return null;
+}
+
+fn buildContextSegment(buf: []u8, percentage: f64, config: *const config_module.Config) ?[]const u8 {
+    var fbs = std.io.fixedBufferStream(buf);
+    const writer = fbs.writer();
+
+    const color = config.context.color.toAnsi();
+    const has_color = color.len > 0;
+    const icon = config.context.icon;
+
+    if (has_color) writer.writeAll(color) catch return null;
+    if (icon.len > 0) {
+        writer.writeAll(icon) catch return null;
+        writer.writeByte(' ') catch return null;
+    }
+    writer.writeAll(config.context.prefix) catch return null;
+    writer.print("{d:.1}", .{percentage}) catch return null;
+    writer.writeAll(config.context.suffix) catch return null;
+    if (has_color) writer.writeAll(reset) catch return null;
+
+    return fbs.getWritten();
+}
+
+fn buildSegment(buf: []u8, value: ?[]const u8, seg: config_module.SegmentConfig) ?[]const u8 {
+    const val = value orelse return null;
+
+    var fbs = std.io.fixedBufferStream(buf);
+    const writer = fbs.writer();
+
+    const color = seg.color.toAnsi();
+    const has_color = color.len > 0;
+    const icon = seg.icon;
+
+    if (has_color) writer.writeAll(color) catch return null;
+    if (icon.len > 0) {
+        writer.writeAll(icon) catch return null;
+        writer.writeByte(' ') catch return null;
+    }
+    writer.writeAll(val) catch return null;
+    if (has_color) writer.writeAll(reset) catch return null;
+
+    return fbs.getWritten();
 }
 
 fn readStdin(allocator: std.mem.Allocator) ![]u8 {

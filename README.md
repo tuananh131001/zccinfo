@@ -87,9 +87,48 @@ Add to your Claude Code settings (`~/.claude/settings.json`):
 ```
 
 
+## Configuration
+
+zccinfo is configurable via a TOML file at `~/.claude/zccinfo/config.toml`. Without a config file, it uses sensible defaults that match the built-in behavior.
+
+```toml
+# ~/.claude/zccinfo/config.toml
+
+# Format string controls segment order and separators
+format = "{context} | {git} | {folder} | {model} | {version}"
+
+[context]
+enabled = true
+color = "yellow"
+prefix = "Ctx: "
+suffix = "%"
+
+[git]
+enabled = true
+color = "magenta"
+
+[folder]
+enabled = true
+color = "magenta"
+
+[model]
+enabled = true
+icon = "🤖"
+
+[version]
+enabled = true
+icon = "📦"
+```
+
+**Available colors**: `black`, `red`, `green`, `yellow`, `blue`, `magenta`, `cyan`, `white`, or `""` for no color.
+
+**Icons**: Paste any UTF-8 character (Nerd Font glyphs, emoji, etc.) as the icon value.
+
+See [docs/config-example.toml](docs/config-example.toml) for a full example with all options.
+
 ## Roadmap
 
-- [ ] Config system (TOML)
+- [x] Config system (TOML)
 - [ ] Auto-wrap
 - [ ] Windows support
 - [ ] Cost/token tracking
