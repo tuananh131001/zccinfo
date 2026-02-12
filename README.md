@@ -124,7 +124,7 @@ icon = "📦"
 
 **Icons**: Paste any UTF-8 character (Nerd Font glyphs, emoji, etc.) as the icon value.
 
-See [docs/config-example.toml](docs/config-example.toml) for a full example with all options.
+See [src/features/config-example.toml](src/features/config-example.toml) for a full example with all options.
 
 ## Roadmap
 

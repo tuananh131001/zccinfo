@@ -6,7 +6,6 @@ const version_module = @import("features/version.zig");
 const context = @import("features/context.zig");
 const config_module = @import("features/config.zig");
 const format_module = @import("features/format.zig");
-const toml = @import("features/toml.zig");
 
 const reset = config_module.reset;
 
