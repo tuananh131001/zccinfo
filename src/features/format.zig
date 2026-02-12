@@ -63,136 +63,64 @@ pub fn tokenize(format: []const u8) TokenList {
     var result = TokenList{};
     var pos: usize = 0;
 
-    while (pos < format.len) {
-        if (result.len >= max_tokens) break;
+    while (pos < format.len and result.len < max_tokens) {
+        // Find next placeholder
+        const open_opt = std.mem.indexOfScalarPos(u8, format, pos, '{');
 
-        // Look for next '{'
-        if (std.mem.indexOfScalarPos(u8, format, pos, '{')) |open| {
-            // Add literal before the placeholder (if any)
-            if (open > pos) {
-                if (result.len >= max_tokens) break;
-                result.tokens[result.len] = .{ .literal = format[pos..open] };
-                result.len += 1;
-            }
-
-            // Find closing '}'
+        if (open_opt) |open| {
+            // Check for matching close brace
             if (std.mem.indexOfScalarPos(u8, format, open + 1, '}')) |close| {
-                if (result.len >= max_tokens) break;
+                // Found a valid placeholder {name}
+
+                // Add literal before placeholder if any
+                if (open > pos) {
+                    result.tokens[result.len] = .{ .literal = format[pos..open] };
+                    result.len += 1;
+                    if (result.len >= max_tokens) break;
+                }
+
+                // Add placeholder
                 result.tokens[result.len] = .{ .placeholder = format[open + 1 .. close] };
                 result.len += 1;
+
+                // Advance past closing brace
                 pos = close + 1;
-            } else {
-                // No closing brace — treat rest as literal
-                if (result.len >= max_tokens) break;
-                result.tokens[result.len] = .{ .literal = format[pos..] };
-                result.len += 1;
-                break;
+                continue;
             }
-        } else {
-            // No more placeholders — rest is literal
-            if (result.len >= max_tokens) break;
-            result.tokens[result.len] = .{ .literal = format[pos..] };
-            result.len += 1;
-            break;
         }
+
+        // No valid placeholder found, or no closing brace
+        // Treat remainder as literal
+        result.tokens[result.len] = .{ .literal = format[pos..] };
+        result.len += 1;
+        break;
     }
 
     return result;
 }
 
-/// Render a format string with segment values, collapsing separators
-/// when segments are absent.
-///
-/// Collapsing logic: when a placeholder resolves to null (segment disabled/absent),
-/// the adjacent literal (separator) is also removed to avoid " |  | " gaps.
-/// Specifically: the literal *before* a null placeholder is removed if there was
-/// a previous non-null segment, and the literal *after* is also consumed.
+/// Render a format string. Missing placeholders render as "<empty>".
 pub fn render(buf: []u8, tokens: *const TokenList, values: *const SegmentValues) []const u8 {
     var fbs = std.io.fixedBufferStream(buf);
     const writer = fbs.writer();
 
-    // First pass: determine which placeholders are present
-    // Then render with separator collapsing
-
-    // Collect resolved tokens: for each token, mark if placeholder is present
-    var resolved: [max_tokens]?[]const u8 = .{null} ** max_tokens;
-    for (tokens.tokens[0..tokens.len], 0..) |token, i| {
+    for (tokens.tokens[0..tokens.len]) |token| {
         switch (token) {
+            .literal => |text| {
+                writer.writeAll(text) catch return fbs.getWritten();
+            },
             .placeholder => |name| {
                 if (Segment.fromString(name)) |seg| {
-                    resolved[i] = values.getBySegment(seg);
-                }
-            },
-            .literal => {},
-        }
-    }
-
-    // Find indices of present (non-null) placeholders
-    var first_present: ?usize = null;
-    var last_present: ?usize = null;
-    for (tokens.tokens[0..tokens.len], 0..) |token, i| {
-        switch (token) {
-            .placeholder => {
-                if (resolved[i] != null) {
-                    if (first_present == null) first_present = i;
-                    last_present = i;
-                }
-            },
-            .literal => {},
-        }
-    }
-
-    // If no segments are present, output nothing
-    if (first_present == null) return fbs.getWritten();
-
-    // Render with collapsing
-    var i: usize = 0;
-    var prev_was_present_placeholder = false;
-
-    while (i < tokens.len) {
-        const token = tokens.tokens[i];
-        switch (token) {
-            .placeholder => |name| {
-                if (resolved[i]) |value| {
-                    _ = name;
-                    writer.writeAll(value) catch return fbs.getWritten();
-                    prev_was_present_placeholder = true;
+                    if (values.getBySegment(seg)) |val| {
+                        writer.writeAll(val) catch return fbs.getWritten();
+                    } else {
+                        writer.writeAll("<empty>") catch return fbs.getWritten();
+                    }
                 } else {
-                    // Null placeholder — skip it and handle separator collapsing
-                    // If next token is a literal (separator), skip it too
-                    if (i + 1 < tokens.len) {
-                        switch (tokens.tokens[i + 1]) {
-                            .literal => {
-                                i += 1; // skip the separator after null placeholder
-                            },
-                            .placeholder => {},
-                        }
-                    }
-                    prev_was_present_placeholder = false;
-                }
-            },
-            .literal => |text| {
-                // Check if the next token is a null placeholder
-                if (i + 1 < tokens.len) {
-                    switch (tokens.tokens[i + 1]) {
-                        .placeholder => {
-                            if (resolved[i + 1] == null) {
-                                // Next placeholder is null — skip this literal (separator)
-                                i += 1;
-                                continue;
-                            }
-                        },
-                        .literal => {},
-                    }
-                }
-
-                // Only write literal if we have context (between present segments)
-                if (prev_was_present_placeholder or i < (first_present orelse 0)) {
-                    writer.writeAll(text) catch return fbs.getWritten();
+                    writer.writeAll("<empty>") catch return fbs.getWritten();
                 }
             },
         }
-        i += 1;
     }
 
     return fbs.getWritten();

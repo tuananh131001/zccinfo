@@ -51,7 +51,7 @@ test "render all segments present" {
     try expectEqualStrings("Ctx: 50.0% | main | project", result);
 }
 
-test "render middle segment null — separator collapses" {
+test "render middle segment null" {
     const tokens = format.tokenize("{context} | {git} | {folder}");
     const values = format.SegmentValues{
         .context = "Ctx: 50.0%",
@@ -60,7 +60,7 @@ test "render middle segment null — separator collapses" {
     };
     var buf: [512]u8 = undefined;
     const result = format.render(&buf, &tokens, &values);
-    try expectEqualStrings("Ctx: 50.0% | project", result);
+    try expectEqualStrings("Ctx: 50.0% | <empty> | project", result);
 }
 
 test "render first segment null" {
@@ -72,7 +72,7 @@ test "render first segment null" {
     };
     var buf: [512]u8 = undefined;
     const result = format.render(&buf, &tokens, &values);
-    try expectEqualStrings("main | project", result);
+    try expectEqualStrings("<empty> | main | project", result);
 }
 
 test "render last segment null" {
@@ -84,7 +84,7 @@ test "render last segment null" {
     };
     var buf: [512]u8 = undefined;
     const result = format.render(&buf, &tokens, &values);
-    try expectEqualStrings("Ctx: 50.0% | main", result);
+    try expectEqualStrings("Ctx: 50.0% | main | <empty>", result);
 }
 
 test "render all segments null — empty output" {
@@ -92,7 +92,7 @@ test "render all segments null — empty output" {
     const values = format.SegmentValues{};
     var buf: [512]u8 = undefined;
     const result = format.render(&buf, &tokens, &values);
-    try expectEqualStrings("", result);
+    try expectEqualStrings("<empty> | <empty> | <empty>", result);
 }
 
 test "render custom separator" {
@@ -143,7 +143,7 @@ test "render multiple middle segments null" {
     };
     var buf: [512]u8 = undefined;
     const result = format.render(&buf, &tokens, &values);
-    try expectEqualStrings("Ctx: 50.0% | v2.1.39", result);
+    try expectEqualStrings("Ctx: 50.0% | <empty> | <empty> | <empty> | v2.1.39", result);
 }
 
 test "render only one segment present" {
@@ -155,5 +155,11 @@ test "render only one segment present" {
     };
     var buf: [512]u8 = undefined;
     const result = format.render(&buf, &tokens, &values);
-    try expectEqualStrings("main", result);
+    try expectEqualStrings("<empty> | main | <empty>", result);
+}
+
+test "tokenize with unclosed brace (regression test)" {
+    const tokens = format.tokenize("foo {bar");
+    try expectEqual(@as(usize, 1), tokens.len);
+    try expectEqualStrings("foo {bar", tokens.tokens[0].literal);
 }
